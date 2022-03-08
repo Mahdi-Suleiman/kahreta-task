@@ -116,9 +116,9 @@ const resolvers = {
 
             const likeCheck = await context.prisma.like.findUnique({
                 where: {
-                    postId_userId: {
-                        postId: Number(args.postId),
-                        userId: userId
+                    userId_postId: {
+                        userId: String(userId),
+                        postId: String(args.postId),
                     }
                 }
             })
@@ -129,11 +129,38 @@ const resolvers = {
             const newLike = await context.prisma.like.create({
                 data: {
                     User: { connect: { id: userId } },
-                    Post: { connect: { id: Number(args.postId) } },
+                    Post: { connect: { id: args.postId } },
                 }
             })
 
             return newLike
+        },
+        view: async (parent, args, context, info) => {
+            const { userId } = context // return an exception if it's not found
+            if (!userId) {
+                throw new Error('not auathorized')
+            }
+            const viewCheck = await context.prisma.like.findUnique({
+                where: {
+                    userId_postId: {
+                        userId: String(userId),
+                        postId: String(args.postId),
+                    }
+                }
+            })
+
+            if (Boolean(viewCheck)) {
+                throw new Error(`User already viewd this post ${args.postId}`)
+            }
+
+            const newView = await context.prisma.view.create({
+                data: {
+                    User: { connect: { id: String(userId) } },
+                    Post: { connect: { id: String(args.postId) } },
+                }
+            })
+
+            return newView
         }
     },
     Post: {
@@ -141,23 +168,37 @@ const resolvers = {
         description: (parent, args, context, info) => parent.description,
         title: (parent, args, context, info) => parent.title,
         userId: async (parent, args, context) => {
-            return await context.prisma.post.findUnique({ where: { id: parent.id } }).userId()
+            return await context.prisma.post.findUnique({ where: { id: parent.id } }).User()
         },
         likes: async (parent, args, context) => {
             return await context.prisma.post.findUnique({ where: { id: parent.id } }).likes()
+        },
+        views: async (parent, args, context, info) => {
+            return await context.prisma.post.findUnique({ where: { id: parent.id } }).views()
         }
     },
     User: {
         posts: async (parent, args, context, info) => {
             return await context.prisma.user.findUnique({ where: { id: parent.id } }).posts()
+        },
+        views: async (parent, args, context, info) => {
+            return await context.prisma.post.findUnique({ where: { id: parent.id } }).views()
         }
     },
     Like: {
         postId: async (parent, args, context, info) => {
-            return await context.prisma.like.findUnique({ where: { id: parent.id } }).post()
+            return await context.prisma.like.findUnique({ where: { id: parent.id } }).Post()
         },
         userId: async (parent, args, context, info) => {
-            return await context.prisma.like.findUnique({ where: { id: parent.id } }).user()
+            return await context.prisma.like.findUnique({ where: { id: parent.id } }).User()
+        },
+    },
+    View: {
+        postId: async (parent, args, context, info) => {
+            return await context.prisma.view.findUnique({ where: { id: parent.id } }).Post()
+        },
+        userId: async (parent, args, context, info) => {
+            return await context.prisma.view.findUnique({ where: { id: parent.id } }).User()
         },
     }
 }

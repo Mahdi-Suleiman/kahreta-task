@@ -8,6 +8,7 @@ type Mutation{
     login(email: String!, password: String!): AuthPayload
     post(title: String!, description: String!): Post!
     like(postId: ID!): Like
+    view(postId: ID!): View
 }
 
 type Like{
@@ -21,7 +22,14 @@ type User{
     name: String!
     email: String!
     posts: [Post!]!
+    views: [View!]!
 }
+
+type View{
+    id: ID!
+    userId: User!
+    postId: Post!
+} 
 
 type Post {
     id: ID!
@@ -29,6 +37,7 @@ type Post {
     title: String!
     userId: User!
     likes: [Like!]!
+    views: [View!]!
 }
 
 type AuthPayload{
