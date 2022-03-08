@@ -18,7 +18,7 @@ const resolvers = {
             const { userId } = context // return an exception if no token found
 
             if (!userId) {
-                throw new Error('not auathorized')
+                throw new Error('not authorized')
             }
             const where = args.filter ?
                 {
@@ -42,7 +42,7 @@ const resolvers = {
             const { userId } = context // return an exception if no token found
 
             if (!userId) {
-                throw new Error('not auathorized')
+                throw new Error('not authorized')
             }
 
             return await context.prisma.user.findMany()
@@ -52,7 +52,7 @@ const resolvers = {
         post: async (parent, args, context, info) => {
             const { userId } = context // return an exception if it's not found
             if (!userId) {
-                throw new Error('not auathorized')
+                throw new Error('not authorized')
             }
             const newPost = await context.prisma.post.create({
                 data: {
@@ -138,7 +138,7 @@ const resolvers = {
         view: async (parent, args, context, info) => {
             const { userId } = context // return an exception if it's not found
             if (!userId) {
-                throw new Error('not auathorized')
+                throw new Error('not authorized')
             }
             const viewCheck = await context.prisma.like.findUnique({
                 where: {
