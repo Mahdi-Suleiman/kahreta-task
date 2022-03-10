@@ -1,18 +1,96 @@
-const { ApolloServer, gql } = require('apollo-server')
+// const { ApolloServer, gql } = require('apollo-server')
+const { ApolloServer, makeExecutableSchema, gql } = require('apollo-server');
+// const { ApolloServer, makeExecutableSchema, gql, GraphQLUpload } = require("apollo-server-express");
 const { PrismaClient } = require('@prisma/client')
 const depthLimit = require('graphql-depth-limit')
 const fs = require('fs')
 const path = require('path');
 const jsonwebtoken = require('jsonwebtoken');
 const { APP_SECRET, getUserId } = require('./utilities')
+const { GraphQLUpload } = require('graphql-upload')
+
+const { createWriteStream } = require("fs"); // this is node built in package
+const { parse, join } = require("path"); // This is node built in package
+
+
 
 const prisma = new PrismaClient()
 
-const typeDefs = fs.readFileSync(
-    path.join('src', 'schema.graphql'), "utf8"
-)
+// let typeDefs = fs.readFileSync(
+//     path.join('src', 'schema.graphql'), "utf8"
+// )
 
+const typeDefs = gql`
+# scalar Upload 
+type File {
+    filename: String!
+    mimetype: String!
+    encoding: String!
+  }
+type Query {
+    users: [User!]!
+    feed(filter: String, skip: Int, take: Int, orderBy: PostOrderByInput): [Post!]!
+}
+
+type Mutation{
+    signup(email: String!, password: String!, name: String!): AuthPayload
+    login(email: String!, password: String!): AuthPayload
+    post(title: String!, description: String!): Post!
+    like(postId: ID!): Like
+    view(postId: ID!): View
+    singleUpload(file: Upload!): File!
+
+}
+
+
+type Like{
+    id: ID!
+    postId: Post!
+    userId: User!
+}
+
+type User{
+    id: ID!
+    name: String!
+    email: String!
+    posts: [Post!]!
+    views: [View!]!
+}
+
+type View{
+    id: ID!
+    userId: User!
+    postId: Post!
+} 
+
+type Post {
+    id: ID!
+    description: String!
+    title: String!
+    userId: User!
+    likes: [Like!]!
+    views: [View!]!
+}
+
+type AuthPayload{
+    token: String
+    user: User
+}
+
+input PostOrderByInput {
+  description: Sort
+  title: Sort
+  createdAt: Sort
+}
+
+enum Sort {
+  asc
+  desc
+}
+`
+console.log(GraphQLUpload)
 const resolvers = {
+    // Upload: GraphQLUpload,
     Query: {
         feed: async (parent, args, context, info) => {
             const { userId } = context // return an exception if no token found
@@ -54,15 +132,22 @@ const resolvers = {
             if (!userId) {
                 throw new Error('not authorized')
             }
-            const newPost = await context.prisma.post.create({
-                data: {
-                    title: args.title,
-                    description: args.description,
-                    User: { connect: { id: userId } }
-                }
-            })
+            // console.log(args.description.includes('war'))
+            const descriptionCheck = /war|gender|terrorist/.test(args.description)
+            // console.log(/war|gender|terrorist/.test(args.description))
+            if (descriptionCheck) {
+                throw new Error(`Post cannot contain offensive words like: war, gender & terrorist`)
+            }
 
-            return newPost
+            // const newPost = await context.prisma.post.create({
+            //     data: {
+            //         title: args.title,
+            //         description: args.description,
+            //         User: { connect: { id: userId } }
+            //     }
+            // })
+
+            // return newPost
         },
         signup: async (parent, args, context, info) => {
             const passwordCheck = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(args.password);
@@ -161,6 +246,65 @@ const resolvers = {
             })
 
             return newView
+        },
+        singleUpload: async (parent, args, context, info) => {
+            const { file } = args
+            const { createReadStream, filename, mimetype, encoding } = await file
+            const stream = createReadStream()
+            const pathName = path.join(__dirname, `../uploads/${filename}`)
+            await stream.pipe(fs.createWriteStream(pathName))
+            // console.log(await args.file.filename)
+            // const { filename, createReadStream } = await args.file;
+            // // console.log(filename)
+            // const stream = createReadStream();
+            // // const stream = fs.createReadStream();
+            // // // console.log(createReadStream)
+            // const imagePath = join(__dirname, `../uploads/${filename}`)
+            // // console.log(imagePath)
+            // const imageStream = await createWriteStream(imagePath)
+            // await stream.pipe(imageStream)
+
+
+
+            // await stream.pipe(imageStream)
+            //
+            // const { createReadStream, filename } = await file;
+            // const stream = createReadStream();
+            // name = `single${Math.floor((Math.random() * 10000) + 1)}`;
+            // let url = join(__dirname, `../Upload/${name}-${Date.now()}${ext}`);
+            // const imageStream = await createWriteStream(url)
+            // await stream.pipe(imageStream);
+
+            // const baseUrl = process.env.BASE_URL || "http://localhost:"
+            // const port = process.env.PORT || 4000
+            // url = `${baseUrl}${port}${url.split('Upload')[1]}`;
+            // return url;
+            //
+
+
+            return args.file.then(file => {
+                //Contents of Upload scalar: https://github.com/jaydenseric/graphql-upload#class-graphqlupload
+                //file.createReadStream() is a readable node stream that contains the contents of the uploaded file
+                //node stream api: https://nodejs.org/api/stream.html
+                // console.log(file.createReadStream)
+                // console.log(await args.file.filename)
+                // const { filename, createReadStream } = await args.file;
+                // console.log(filename)
+                // const stream = file.createReadStream().pipe(
+                //     createWriteStream(
+                //         path.join(__dirname, "../uploads/", file.filename)
+                //     )
+                // );
+                // const stream = fs.createReadStream();
+                // // console.log(createReadStream)
+                // const imagePath = join(__dirname, `../uploads/`, file.filename)
+                // console.log(imagePath)
+                // const imageStream = createWriteStream(imagePath)
+                // stream.pipe(imageStream)
+
+                return file;
+            });
+
         }
     },
     Post: {
@@ -218,8 +362,34 @@ const server = new ApolloServer({
         }
     },
     validationRules: [depthLimit(3)],
-    introspection: 'development'
+    introspection: 'development',
+    // uploads: false
 });
+
 server.listen().then(({ url }) => {
     console.log(`🚀 Server ready at ${url} 🚀`);
 });
+
+
+
+
+
+
+
+
+// const { parse, join } = require("path"); // This is node built in package
+// const { createWriteStream } = require("fs"); // this is node built in package
+
+const readFile = async (file) => {
+    const { createReadStream, filename } = await file;
+    const stream = createReadStream();
+    var { ext, name } = parse(filename);
+    name = `single${Math.floor((Math.random() * 10000) + 1)}`;
+    let url = join(__dirname, `../Upload/${name}-${Date.now()}${ext}`);
+    const imageStream = await createWriteStream(url)
+    await stream.pipe(imageStream);
+    const baseUrl = process.env.BASE_URL || "http://localhost:"
+    const port = process.env.PORT || 4000
+    url = `${baseUrl}${port}${url.split('Upload')[1]}`;
+    return url;
+} // This is single readfile

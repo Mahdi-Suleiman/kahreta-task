@@ -9,6 +9,7 @@ type Mutation{
     post(title: String!, description: String!): Post!
     like(postId: ID!): Like
     view(postId: ID!): View
+    singleUpload(file: GraphQLUpload!): String
 }
 
 type Like{

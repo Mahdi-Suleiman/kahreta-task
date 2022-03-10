@@ -17,10 +17,17 @@
     "url": "https://github.com/Mahdi-Suleiman/kahreta-task/issues"
   },
   "homepage": "https://github.com/Mahdi-Suleiman/kahreta-task#readme",
+  "resolutions": {
+    "fs-capacitor": "3.0.0"
+  },
   "dependencies": {
     "@prisma/client": "^2.29.1",
-    "apollo-server": "^3.6.3",
+    "apollo-server": "^2.25.3",
+    "apollo-server-express": "^3.6.3",
+    "fs-capacitor": "^7.0.1",
     "graphql-depth-limit": "^1.1.0",
+    "graphql-scalars": "^1.15.0",
+    "graphql-upload": "^13.0.0",
     "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.15"
   },
