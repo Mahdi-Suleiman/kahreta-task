@@ -11,13 +11,18 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  email    String @unique
+  id       String     @id @default(uuid())
+  email    String     @unique
   name     String
   password String
   posts    Post[]
   likes    Like[]
   views    View[]
+  User     Follower[] @relation("user")
+  Follower Follower[] @relation("follower")
+
+  // followedBy Follower[] @relation("follower")
+  // following  Follower[] @relation("following")
 }
 
 model Post {
@@ -50,4 +55,21 @@ model View {
   postId String
 
   @@unique(fields: [userId, postId], name: "userId_postId")
+}
+
+model Follower {
+  id         String @id @default(uuid())
+  User       User   @relation("user", fields: [userId], references: [id])
+  userId     String
+  Follower   User   @relation("follower", fields: [followerId], references: [id])
+  followerId String
+
+  // follower    User   @relation("follower", fields: [followerId], references: [id])
+  // followerId  String
+  // following   User   @relation("following", fields: [followingId], references: [id])
+  // followingId String
+
+  // @@id([followerId, followingId])
+  // @@unique(fields: [followerId, followingId], name: "followingId_followerId")
+  @@unique(fields: [userId, followerId], name: "userId_followerId")
 }

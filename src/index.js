@@ -16,78 +16,78 @@ const { parse, join } = require("path"); // This is node built in package
 
 const prisma = new PrismaClient()
 
-// let typeDefs = fs.readFileSync(
-//     path.join('src', 'schema.graphql'), "utf8"
-// )
+let typeDefs = fs.readFileSync(
+    path.join('src', 'schema.graphql'), "utf8"
+)
 
-const typeDefs = gql`
-# scalar Upload 
-type File {
-    filename: String!
-    mimetype: String!
-    encoding: String!
-  }
-type Query {
-    users: [User!]!
-    feed(filter: String, skip: Int, take: Int, orderBy: PostOrderByInput): [Post!]!
-}
+// const typeDefs = gql`
+// # scalar Upload 
+// type File {
+//     filename: String!
+//     mimetype: String!
+//     encoding: String!
+//   }
+// type Query {
+//     users: [User!]!
+//     feed(filter: String, skip: Int, take: Int, orderBy: PostOrderByInput): [Post!]!
+// }
 
-type Mutation{
-    signup(email: String!, password: String!, name: String!): AuthPayload
-    login(email: String!, password: String!): AuthPayload
-    post(title: String!, description: String!): Post!
-    like(postId: ID!): Like
-    view(postId: ID!): View
-    singleUpload(file: Upload!): File!
+// type Mutation{
+//     signup(email: String!, password: String!, name: String!): AuthPayload
+//     login(email: String!, password: String!): AuthPayload
+//     post(title: String!, description: String!): Post!
+//     like(postId: ID!): Like
+//     view(postId: ID!): View
+// singleUpload(file: Upload!): File!
 
-}
+// }
 
 
-type Like{
-    id: ID!
-    postId: Post!
-    userId: User!
-}
+// type Like{
+//     id: ID!
+//     postId: Post!
+//     userId: User!
+// }
 
-type User{
-    id: ID!
-    name: String!
-    email: String!
-    posts: [Post!]!
-    views: [View!]!
-}
+// type User{
+//     id: ID!
+//     name: String!
+//     email: String!
+//     posts: [Post!]!
+//     views: [View!]!
+// }
 
-type View{
-    id: ID!
-    userId: User!
-    postId: Post!
-} 
+// type View{
+//     id: ID!
+//     userId: User!
+//     postId: Post!
+// } 
 
-type Post {
-    id: ID!
-    description: String!
-    title: String!
-    userId: User!
-    likes: [Like!]!
-    views: [View!]!
-}
+// type Post {
+//     id: ID!
+//     description: String!
+//     title: String!
+//     userId: User!
+//     likes: [Like!]!
+//     views: [View!]!
+// }
 
-type AuthPayload{
-    token: String
-    user: User
-}
+// type AuthPayload{
+//     token: String
+//     user: User
+// }
 
-input PostOrderByInput {
-  description: Sort
-  title: Sort
-  createdAt: Sort
-}
+// input PostOrderByInput {
+//   description: Sort
+//   title: Sort
+//   createdAt: Sort
+// }
 
-enum Sort {
-  asc
-  desc
-}
-`
+// enum Sort {
+//   asc
+//   desc
+// }
+// `
 console.log(GraphQLUpload)
 const resolvers = {
     // Upload: GraphQLUpload,
@@ -107,6 +107,9 @@ const resolvers = {
                 }
                 : {}
 
+            if (args.take > 1000) {
+                let take = 1000
+            }
             //filtering, pagination & sorting
             const posts = await context.prisma.post.findMany({
                 where,
@@ -123,8 +126,26 @@ const resolvers = {
                 throw new Error('not authorized')
             }
 
-            return await context.prisma.user.findMany()
-        }
+            return await context.prisma.user.findMany({
+                where: {
+                    userId: userId
+                }
+            })
+        },
+        // followers: async (parent, args, context, info) => {
+        //     const { userId } = context // return an exception if no token found
+
+        //     if (!userId) {
+        //         throw new Error('not authorized')
+        //     }
+
+        //     return await context.prisma.follower.findMany({
+        //         where: {
+        //             userId: userId
+        //         }
+        //     })
+
+        // }
     },
     Mutation: {
         post: async (parent, args, context, info) => {
@@ -305,6 +326,33 @@ const resolvers = {
                 return file;
             });
 
+        },
+        follow: async (parent, args, context, info) => {
+            const { userId } = context // return an exception if it's not found
+            if (!userId) {
+                throw new Error('not authorized')
+            }
+
+            const followCheck = await context.prisma.follower.findUnique({
+                where: {
+                    userId_followerId: {
+                        userId: String(userId),
+                        followerId: String(args.followerId),
+                    }
+                }
+            })
+            if (Boolean(followCheck)) {
+                throw new Error(`user with ID ${userId} already followerd user with ID ${args.followerId}`)
+            }
+
+            const newFollow = await context.prisma.follower.create({
+                data: {
+                    User: { connect: { id: userId } },
+                    Follower: { connect: { id: args.followerId } }
+                }
+            })
+
+            return newFollow
         }
     },
     Post: {
@@ -343,8 +391,20 @@ const resolvers = {
         },
         userId: async (parent, args, context, info) => {
             return await context.prisma.view.findUnique({ where: { id: parent.id } }).User()
-        },
-    }
+        }
+    },
+    // Follow: {
+    //     id: async (parent, args, context, info) => {
+    //         return parent.id
+    //         return await context.prisma.follower.findUnique({ where: { id: parent.id } }).id()
+    //     },
+    //     userId: async (parent, args, context, info) => {
+    //         return await context.prisma.follower.findUnique({ where: { id: parent.id } }).User()
+    //     },
+    //     followerId: async (parent, args, context, info) => {
+    //         return await context.prisma.follower.findUnique({ where: { id: parent.id } }).Follower()
+    //     }
+    // }
 }
 
 

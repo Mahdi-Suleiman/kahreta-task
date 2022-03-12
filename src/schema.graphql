@@ -1,6 +1,12 @@
+type File {
+    filename: String!
+    mimetype: String!
+    encoding: String!
+  }
 type Query {
     users: [User!]!
     feed(filter: String, skip: Int, take: Int, orderBy: PostOrderByInput): [Post!]!
+    followers: Follow
 }
 
 type Mutation{
@@ -9,7 +15,15 @@ type Mutation{
     post(title: String!, description: String!): Post!
     like(postId: ID!): Like
     view(postId: ID!): View
-    singleUpload(file: GraphQLUpload!): String
+    singleUpload(file: Upload!): File!
+    follow(followerId: ID!): Follow
+}
+
+type Follow{
+    id: ID
+    userId: User
+    followerId: User
+    # follower: User
 }
 
 type Like{
@@ -24,6 +38,7 @@ type User{
     email: String!
     posts: [Post!]!
     views: [View!]!
+    followers: [User!]
 }
 
 type View{
