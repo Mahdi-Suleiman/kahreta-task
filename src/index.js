@@ -270,36 +270,36 @@ const resolvers = {
                 // const imageStream = createWriteStream(imagePath)
                 // stream.pipe(imageStream)
 
-                var axios = require('axios');
-                var FormData = require('form-data');
-                // var fs = require('fs');
-                var data = new FormData();
-                console.log(file.createReadStream)
-                // data.append('image', fs.createReadStream('/Users/mahdisuleiman/Downloads/download.jpeg'));
-                data.append('image', file.createReadStream);
+                // var axios = require('axios');
+                // var FormData = require('form-data');
+                // // var fs = require('fs');
+                // var data = new FormData();
+                // console.log(file.createReadStream)
+                // // data.append('image', fs.createReadStream('/Users/mahdisuleiman/Downloads/download.jpeg'));
+                // data.append('image', file.createReadStream);
 
-                var config = {
-                    method: 'post',
-                    url: 'http://localhost:3000/api/image-upload',
-                    headers: {
-                        ...data.getHeaders()
-                    },
-                    data: data
-                };
+                // var config = {
+                //     method: 'post',
+                //     url: 'http://localhost:3000/api/image-upload',
+                //     headers: {
+                //         ...data.getHeaders()
+                //     },
+                //     data: data
+                // };
 
-                axios(config)
-                    .then(function (response) {
-                        console.log(JSON.stringify(response.data));
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
+                // axios(config)
+                //     .then(function (response) {
+                //         console.log(JSON.stringify(response.data));
+                //     })
+                //     .catch(function (error) {
+                //         console.log(error);
+                //     });
 
 
-                const { createReadStream, filename, mimetype, encoding } = file
-                const stream = createReadStream()
-                const pathName = path.join(__dirname, `../uploads/${filename}`)
-                createReadStream().pipe(fs.createWriteStream(pathName))
+                // const { createReadStream, filename, mimetype, encoding } = file
+                // const stream = createReadStream()
+                // const pathName = path.join(__dirname, `../uploads/${filename}`)
+                // createReadStream().pipe(fs.createWriteStream(pathName))
                 return file;
             });
 
