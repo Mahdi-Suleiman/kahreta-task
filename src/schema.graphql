@@ -1,3 +1,5 @@
+scalar Upload
+
 type File {
     filename: String!
     mimetype: String!
@@ -12,7 +14,7 @@ type Query {
 type Mutation{
     signup(email: String!, password: String!, name: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
-    post(title: String!, description: String!): Post!
+    post(userId: ID!,title: String!, description: String!, image_url: String!): Post!
     like(postId: ID!): Like
     view(postId: ID!): View
     singleUpload(file: Upload!): File!
@@ -51,6 +53,7 @@ type Post {
     id: ID!
     description: String!
     title: String!
+    image_url: String!
     userId: User!
     likes: [Like!]!
     views: [View!]!

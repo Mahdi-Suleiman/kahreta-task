@@ -1,16 +1,23 @@
 // const { ApolloServer, gql } = require('apollo-server')
-const { ApolloServer, makeExecutableSchema, gql } = require('apollo-server');
-// const { ApolloServer, makeExecutableSchema, gql, GraphQLUpload } = require("apollo-server-express");
+const express = require('express')
+// const { ApolloServer, makeExecutableSchema, gql } = require('apollo-server');
+const { ApolloServer, makeExecutableSchema, gql } = require("apollo-server-express");
 const { PrismaClient } = require('@prisma/client')
 const depthLimit = require('graphql-depth-limit')
 const fs = require('fs')
 const path = require('path');
 const jsonwebtoken = require('jsonwebtoken');
 const { APP_SECRET, getUserId } = require('./utilities')
-const { GraphQLUpload } = require('graphql-upload')
+const { GraphQLUpload, graphqlUploadExpress } = require('graphql-upload')
 
-const { createWriteStream } = require("fs"); // this is node built in package
-const { parse, join } = require("path"); // This is node built in package
+// const { createWriteStream } = require("fs"); // this is node built in package
+// const { parse, join } = require("path"); // This is node built in package
+// const app = express()
+const bodyParser = require('body-parser')
+const multer = require('multer')
+const axios = require('axios')
+
+
 
 
 
@@ -20,77 +27,9 @@ let typeDefs = fs.readFileSync(
     path.join('src', 'schema.graphql'), "utf8"
 )
 
-// const typeDefs = gql`
-// # scalar Upload 
-// type File {
-//     filename: String!
-//     mimetype: String!
-//     encoding: String!
-//   }
-// type Query {
-//     users: [User!]!
-//     feed(filter: String, skip: Int, take: Int, orderBy: PostOrderByInput): [Post!]!
-// }
-
-// type Mutation{
-//     signup(email: String!, password: String!, name: String!): AuthPayload
-//     login(email: String!, password: String!): AuthPayload
-//     post(title: String!, description: String!): Post!
-//     like(postId: ID!): Like
-//     view(postId: ID!): View
-// singleUpload(file: Upload!): File!
-
-// }
-
-
-// type Like{
-//     id: ID!
-//     postId: Post!
-//     userId: User!
-// }
-
-// type User{
-//     id: ID!
-//     name: String!
-//     email: String!
-//     posts: [Post!]!
-//     views: [View!]!
-// }
-
-// type View{
-//     id: ID!
-//     userId: User!
-//     postId: Post!
-// } 
-
-// type Post {
-//     id: ID!
-//     description: String!
-//     title: String!
-//     userId: User!
-//     likes: [Like!]!
-//     views: [View!]!
-// }
-
-// type AuthPayload{
-//     token: String
-//     user: User
-// }
-
-// input PostOrderByInput {
-//   description: Sort
-//   title: Sort
-//   createdAt: Sort
-// }
-
-// enum Sort {
-//   asc
-//   desc
-// }
-// `
-console.log(GraphQLUpload)
+console.log(typeof (GraphQLUpload))
 const resolvers = {
-    // Upload: GraphQLUpload,
+    Upload: GraphQLUpload,
     Query: {
         feed: async (parent, args, context, info) => {
             const { userId } = context // return an exception if no token found
@@ -149,26 +88,29 @@ const resolvers = {
     },
     Mutation: {
         post: async (parent, args, context, info) => {
-            const { userId } = context // return an exception if it's not found
-            if (!userId) {
-                throw new Error('not authorized')
-            }
+            // const { userId } = context // return an exception if it's not found
+            // if (!userId) {
+            //     throw new Error('not authorized')
+            // }
             // console.log(args.description.includes('war'))
             const descriptionCheck = /war|gender|terrorist/.test(args.description)
             // console.log(/war|gender|terrorist/.test(args.description))
             if (descriptionCheck) {
                 throw new Error(`Post cannot contain offensive words like: war, gender & terrorist`)
             }
+            // const userId = '4203e099-bc5d-4e81-a1f5-41616fd5b508'
 
-            // const newPost = await context.prisma.post.create({
-            //     data: {
-            //         title: args.title,
-            //         description: args.description,
-            //         User: { connect: { id: userId } }
-            //     }
-            // })
+            const newPost = await context.prisma.post.create({
+                data: {
+                    title: args.title,
+                    description: args.description,
+                    image_url: args.image_url,
+                    User: { connect: { id: args.userId } },
 
-            // return newPost
+                }
+            })
+
+            return newPost
         },
         signup: async (parent, args, context, info) => {
             const passwordCheck = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(args.password);
@@ -269,11 +211,32 @@ const resolvers = {
             return newView
         },
         singleUpload: async (parent, args, context, info) => {
-            const { file } = args
-            const { createReadStream, filename, mimetype, encoding } = await file
-            const stream = createReadStream()
-            const pathName = path.join(__dirname, `../uploads/${filename}`)
-            await stream.pipe(fs.createWriteStream(pathName))
+            // const { file } = args
+            // const file = args.file
+            // const image = {
+            //     image: file
+            // }
+
+            // let storage = multer.diskStorage({
+            //     destination: function (req, file, cb) {
+            //         cb(null, 'uploads');
+            //     },
+            //     filename: function (req, file, cb) {
+            //         cb(null, Date.now() + '-' + file.originalname);
+            //     }
+            // });
+            // let upload = multer({ storage: storage });
+            // upload.single('file')
+
+            // console.log(file)
+            // const { createReadStream, filename, mimetype, encoding } = await file
+            // const stream = createReadStream()
+            // const pathName = path.join(__dirname, `../uploads/${filename}`)
+            // await stream.pipe(fs.createWriteStream(pathName))
+
+
+
+
             // console.log(await args.file.filename)
             // const { filename, createReadStream } = await args.file;
             // // console.log(filename)
@@ -285,22 +248,6 @@ const resolvers = {
             // const imageStream = await createWriteStream(imagePath)
             // await stream.pipe(imageStream)
 
-
-
-            // await stream.pipe(imageStream)
-            //
-            // const { createReadStream, filename } = await file;
-            // const stream = createReadStream();
-            // name = `single${Math.floor((Math.random() * 10000) + 1)}`;
-            // let url = join(__dirname, `../Upload/${name}-${Date.now()}${ext}`);
-            // const imageStream = await createWriteStream(url)
-            // await stream.pipe(imageStream);
-
-            // const baseUrl = process.env.BASE_URL || "http://localhost:"
-            // const port = process.env.PORT || 4000
-            // url = `${baseUrl}${port}${url.split('Upload')[1]}`;
-            // return url;
-            //
 
 
             return args.file.then(file => {
@@ -323,6 +270,36 @@ const resolvers = {
                 // const imageStream = createWriteStream(imagePath)
                 // stream.pipe(imageStream)
 
+                var axios = require('axios');
+                var FormData = require('form-data');
+                // var fs = require('fs');
+                var data = new FormData();
+                console.log(file.createReadStream)
+                // data.append('image', fs.createReadStream('/Users/mahdisuleiman/Downloads/download.jpeg'));
+                data.append('image', file.createReadStream);
+
+                var config = {
+                    method: 'post',
+                    url: 'http://localhost:3000/api/image-upload',
+                    headers: {
+                        ...data.getHeaders()
+                    },
+                    data: data
+                };
+
+                axios(config)
+                    .then(function (response) {
+                        console.log(JSON.stringify(response.data));
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
+
+                const { createReadStream, filename, mimetype, encoding } = file
+                const stream = createReadStream()
+                const pathName = path.join(__dirname, `../uploads/${filename}`)
+                createReadStream().pipe(fs.createWriteStream(pathName))
                 return file;
             });
 
@@ -408,30 +385,66 @@ const resolvers = {
 }
 
 
-const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    context: ({ req }) => {
-        return {
-            ...req,
-            prisma,
-            userId:
-                req && req.headers.authorization
-                    ? getUserId(req)
-                    : null
-        }
-    },
-    validationRules: [depthLimit(3)],
-    introspection: 'development',
-    // uploads: false
-});
+// const server = new ApolloServer({
+//     typeDefs,
+//     resolvers,
+//     context: ({ req }) => {
+//         return {
+//             ...req,
+//             prisma,
+//             userId:
+//                 req && req.headers.authorization
+//                     ? getUserId(req)
+//                     : null
+//         }
+//     },
+//     validationRules: [depthLimit(3)],
+//     introspection: 'development',
+//     uploads: false
+// });
 
-server.listen().then(({ url }) => {
-    console.log(`🚀 Server ready at ${url} 🚀`);
-});
+// server.listen().then(({ url }) => {
+//     console.log(`🚀 Server ready at ${url} 🚀`);
+// });
+
+async function startApolloServer() {
+    const server = new ApolloServer({
+        typeDefs,
+        resolvers,
+        context: ({ req }) => {
+            return {
+                ...req,
+                prisma,
+                userId:
+                    req && req.headers.authorization
+                        ? getUserId(req)
+                        : null
+            }
+        },
+        validationRules: [depthLimit(3)],
+        introspection: 'development',
+        uploads: false
+    });
+    await server.start();
+
+    const app = express();
+
+    app.use(bodyParser.json())
+    // app.use(GraphQLUpload)
+    app.use(express.json({ limit: "50mb" }));
+    app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }));
+    server.applyMiddleware({ app, path: '/' });
+
+    // Mount Apollo middleware here.
+
+    // server.applyMiddleware({ app });
+    await new Promise(resolve => app.listen({ port: 4000 }, resolve));
+    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
+    return { server, app };
+}
 
 
-
+startApolloServer()
 
 
 
@@ -453,3 +466,6 @@ const readFile = async (file) => {
     url = `${baseUrl}${port}${url.split('Upload')[1]}`;
     return url;
 } // This is single readfile
+
+
+
