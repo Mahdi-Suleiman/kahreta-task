@@ -428,7 +428,57 @@ async function startApolloServer() {
     await server.start();
 
     const app = express();
+    //bind 2 services
+    let storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads');
+        },
+        filename: function (req, file, cb) {
+            pathName = path.join(__dirname, `./uploads/${file.originalname}`)
+            cb(null, Date.now() + '-' + file.originalname);
+        }
+    });
+    let upload = multer({ storage: storage });
 
+    app.post('/api/image-upload', upload.single('image'), (req, res) => {
+        // console.log(req)
+        const image = req.body.image;
+        // console.log("image", req.body.)
+        // console.log(storage.destination)
+        // const pathName = path.join(__dirname, `./uploads/${filename}`)
+        console.log(pathName)
+        // console.log(image)
+        axios
+            .post(`http://localhost:4000/`, {
+                query: `
+                mutation Post($userId: ID!, $title: String!, $description: String!, $imageUrl: String!) {
+                    post(userId: $userId, title: $title, description: $description, image_url: $imageUrl) {
+                      id
+                      title
+                      description
+                      image_url
+                    }
+                  }
+      `,
+                variables: {
+                    // id: String(id),
+                    userId: req.body.userId,
+                    title: 'rest title',
+                    description: 'rest descriptioon',
+                    imageUrl: pathName,
+                    // type: this.form.type,
+                },
+            })
+            .then(res => console.log(res.status))
+            .catch(err => console.log(err))
+        res.send(apiResponse({ message: 'File uploaded successfully.', image }));
+    });
+
+    function apiResponse(results) {
+        return JSON.stringify({ "status": 200, "error": null, "response": results });
+    }
+
+    //
     app.use(bodyParser.json())
     // app.use(GraphQLUpload)
     app.use(express.json({ limit: "50mb" }));
