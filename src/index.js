@@ -32,11 +32,11 @@ const resolvers = {
     Upload: GraphQLUpload,
     Query: {
         feed: async (parent, args, context, info) => {
-            const { userId } = context // return an exception if no token found
+            // const { userId } = context // return an exception if no token found
 
-            if (!userId) {
-                throw new Error('not authorized')
-            }
+            // if (!userId) {
+            //     throw new Error('not authorized')
+            // }
             const where = args.filter ?
                 {
                     OR: [
