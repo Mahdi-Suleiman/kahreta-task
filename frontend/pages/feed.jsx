@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 
 // const [first, setfirst] = useState(2)
 
-let pageCounter = 5
+// let pageCounter = 5
 export default function Feed({ feed }) {
     const router = useRouter();
     const [feeed, setFeeed] = useState(feed)
@@ -18,16 +18,18 @@ export default function Feed({ feed }) {
     // console.log(posts.length);
     // posts.map(post => console.log(post))
     // console.log(feed);
-    const [counter, setCounter] = useState(10)
-    pageCounter = counter
-    useEffect(() => {
+    // const [counter, setCounter] = useState(10)
+    // pageCounter = counter
+    // useEffect(() => {
 
-        setFeeed(feed)
-        pageCounter = counter
-        // router.push(router.asPath)
-        // router.replace(router.asPath)
+    //     setFeeed(feed)
+    //     pageCounter = counter
+    //     // router.push(router.asPath)
+    //     // router.replace(router.asPath)
+    // }, [counter])
 
-    }, [counter])
+
+
     return (
         <div>
             feed
@@ -41,8 +43,7 @@ export default function Feed({ feed }) {
                             // { console.log(post.image_url) }
                             return (
                                 <div key={post.id} className="card" style={{ width: 18 + 'rem' }}>
-                                    {/* <img src="" alt="" srcset=" " /> */}
-                                    <img src={post.image_url} className="card-img-top" alt="..." layout='fill' />
+                                    <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
                                     <div className="card-body">
                                         <h5 className="card-title">{post.title}</h5>
                                         <p className="card-text">{post.description}</p>
@@ -53,7 +54,7 @@ export default function Feed({ feed }) {
                         })
                     }
                 </div>
-                <div className="row">
+                {/* <div className="row">
                     <button onClick={() => {
                         const refreshData = () => {
                             router.replace(router.asPath);
@@ -67,7 +68,7 @@ export default function Feed({ feed }) {
                         setFeeed(feed)
 
                     }}>show more 5</button>
-                </div>
+                </div> */}
             </div>
         </div>
     )
@@ -101,6 +102,7 @@ export async function getServerSideProps({ req, res }) {
         link: authLink.concat(httpLink),
         cache: new InMemoryCache(),
     });
+    // console.log('pagecounter befroe query', pageCounter)
 
     // console.log(req.cookies.access_token)
     const { data } = await client.query({
@@ -114,12 +116,11 @@ export async function getServerSideProps({ req, res }) {
                 }
                 }
   `,
-        variables: {
-            take: pageCounter,
-            skip: 0
-        }
+        // variables: {
+        //     take: pageCounter,
+        //     skip: 0
+        // }
     })
-    console.log('pagecounter befroe query', pageCounter)
 
     // console.log(data.feed)
     return {
