@@ -16,7 +16,7 @@ const { GraphQLUpload, graphqlUploadExpress } = require('graphql-upload')
 const bodyParser = require('body-parser')
 const multer = require('multer')
 const axios = require('axios')
-
+var cookieParser = require('cookie-parser')
 
 
 
@@ -27,16 +27,18 @@ let typeDefs = fs.readFileSync(
     path.join('src', 'schema.graphql'), "utf8"
 )
 
-console.log(typeof (GraphQLUpload))
+// console.log(typeof (GraphQLUpload))
 const resolvers = {
     Upload: GraphQLUpload,
     Query: {
         feed: async (parent, args, context, info) => {
-            // const { userId } = context // return an exception if no token found
+            const { userId } = context // return an exception if no token found
 
-            // if (!userId) {
-            //     throw new Error('not authorized')
-            // }
+            if (!userId) {
+                throw new Error('not authorized')
+            }
+
+            console.log('user id', userId)
             const where = args.filter ?
                 {
                     OR: [
@@ -431,14 +433,24 @@ async function startApolloServer() {
     //bind 2 services
     let storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, 'uploads');
+            // cb(null, 'uploads');
+            cb(null, 'frontend/public/uploads/');
         },
         filename: function (req, file, cb) {
-            pathName = path.join(__dirname, `./uploads/${file.originalname}`)
-            cb(null, Date.now() + '-' + file.originalname);
+            // /Users/mahdisuleiman/Desktop/tasks/kahreta-task/frontend/public/
+            // pathName = path.join(__dirname, `./uploads/${file.originalname}`)
+            const fileName = Date.now() + '-' + file.originalname
+            // pathName = path.join(__dirname, `/frontend/public/uploads/${file.originalname}`)
+            // pathName = path.join(__dirname, `/frontend/public/uploads/${fileName}`)
+            pathName = `/uploads/${fileName}`
+            console.log("pathname", pathName)
+            // pathName = path.join('/Users/mahdisuleiman/Desktop/tasks/kahreta-task/frontend/public/uploads/', `${file.originalname}`)
+            // cb(null, Date.now() + '-' + file.originalname);
+            cb(null, fileName);
         }
     });
     let upload = multer({ storage: storage });
+
 
     app.post('/api/image-upload', upload.single('image'), (req, res) => {
         // console.log(req)
@@ -446,7 +458,11 @@ async function startApolloServer() {
         // console.log("image", req.body.)
         // console.log(storage.destination)
         // const pathName = path.join(__dirname, `./uploads/${filename}`)
-        console.log(pathName)
+        // console.log('Cookies: ', req.cookies)
+
+        // Cookies that have been signed
+        // console.log('Signed Cookies: ', req.signedCookies)
+        // console.log(pathName)
         // console.log(image)
         axios
             .post(`http://localhost:4000/`, {
@@ -474,12 +490,22 @@ async function startApolloServer() {
         res.send(apiResponse({ message: 'File uploaded successfully.', image }));
     });
 
+    app.get('/cookies', (req, res) => {
+        // console.log('Cookies: ', req.cookies)
+
+        // Cookies that have been signed
+        // console.log('Signed Cookies: ', req.signedCookies)
+
+        res.send('cookies')
+    })
+
     function apiResponse(results) {
         return JSON.stringify({ "status": 200, "error": null, "response": results });
     }
 
     //
     app.use(bodyParser.json())
+    app.use(cookieParser())
     // app.use(GraphQLUpload)
     app.use(express.json({ limit: "50mb" }));
     app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }));

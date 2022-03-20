@@ -1,12 +1,33 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, gql } from "@apollo/client";
+import client from '../apollo-client';
+import { setContext } from '@apollo/client/link/context';
+import Image from 'next/image'
+import { useRouter } from 'next/router';
 
+// const [first, setfirst] = useState(2)
+
+let pageCounter = 5
 export default function Feed({ feed }) {
+    const router = useRouter();
+    const [feeed, setFeeed] = useState(feed)
+
+
     // console.log('posts from feed', posts);
     // console.log(posts.length);
     // posts.map(post => console.log(post))
     // console.log(feed);
+    const [counter, setCounter] = useState(10)
+    pageCounter = counter
+    useEffect(() => {
+
+        setFeeed(feed)
+        pageCounter = counter
+        // router.push(router.asPath)
+        // router.replace(router.asPath)
+
+    }, [counter])
     return (
         <div>
             feed
@@ -16,11 +37,12 @@ export default function Feed({ feed }) {
             <div className='container'>
                 <div className="row">
                     {
-                        feed.map(post => {
-                            { console.log(post.image_url) }
+                        feeed.map(post => {
+                            // { console.log(post.image_url) }
                             return (
                                 <div key={post.id} className="card" style={{ width: 18 + 'rem' }}>
-                                    <img src={post.image_url} className="card-img-top" alt="..." />
+                                    {/* <img src="" alt="" srcset=" " /> */}
+                                    <img src={post.image_url} className="card-img-top" alt="..." layout='fill' />
                                     <div className="card-body">
                                         <h5 className="card-title">{post.title}</h5>
                                         <p className="card-text">{post.description}</p>
@@ -31,6 +53,21 @@ export default function Feed({ feed }) {
                         })
                     }
                 </div>
+                <div className="row">
+                    <button onClick={() => {
+                        const refreshData = () => {
+                            router.replace(router.asPath);
+                        }
+                        setCounter(counter + 5)
+                        pageCounter += counter
+                        console.log("page counter", pageCounter)
+                        console.log("state counter", counter)
+                        console.log('feed length', feed.length)
+                        refreshData()
+                        setFeeed(feed)
+
+                    }}>show more 5</button>
+                </div>
             </div>
         </div>
     )
@@ -40,26 +77,51 @@ export default function Feed({ feed }) {
 
 
 
-export async function getStaticProps() {
-    const client = new ApolloClient({
-        uri: `http://localhost:4000/`,
-        cache: new InMemoryCache()
-    })
+export async function getServerSideProps({ req, res }) {
+    // const client = new ApolloClient({
+    //     uri: `http://localhost:4000/`,
+    //     cache: new InMemoryCache()
+    // })
 
+    const httpLink = createHttpLink({
+        uri: 'http://localhost:4000/',
+    });
+    const authLink = setContext((_, { headers }) => {
+        const token = req.cookies.access_token
+        console.log('feed token', token)
+        return {
+            headers: {
+                ...headers,
+                authorization: token ? `Bearer ${token}` : "",
+            }
+        }
+    });
+
+    const client = new ApolloClient({
+        link: authLink.concat(httpLink),
+        cache: new InMemoryCache(),
+    });
+
+    // console.log(req.cookies.access_token)
     const { data } = await client.query({
         query: gql`
-      query Feed {
-          feed {
-            id
-            description
-            title
-            image_url
-          }
+            query Feed($take: Int, $skip: Int) {
+                    feed(take: $take, skip: $skip) {
+                    id
+                    description
+                    title
+                    image_url
+                }
+                }
+  `,
+        variables: {
+            take: pageCounter,
+            skip: 0
         }
-  `
     })
+    console.log('pagecounter befroe query', pageCounter)
 
-    console.log(data.feed)
+    // console.log(data.feed)
     return {
         props: {
             feed: data.feed
