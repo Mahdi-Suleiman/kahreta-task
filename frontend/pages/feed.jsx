@@ -5,6 +5,7 @@ import client from '../apollo-client';
 import { setContext } from '@apollo/client/link/context';
 import Image from 'next/image'
 import { useRouter } from 'next/router';
+import Cookies from 'js-cookie'
 
 // const [first, setfirst] = useState(2)
 
@@ -12,6 +13,7 @@ import { useRouter } from 'next/router';
 export default function Feed({ feed }) {
     const router = useRouter();
     const [feeed, setFeeed] = useState(feed)
+    const [cookie, setCookie] = useState(Cookies.get('access_token'))
 
 
     // console.log('posts from feed', posts);
@@ -29,32 +31,33 @@ export default function Feed({ feed }) {
     // }, [counter])
 
 
+    if (cookie) {
 
-    return (
-        <div>
-            feed
-            {/* {message} */}
-            {/* <MyFeed /> */}
-            <br />
-            <div className='container'>
-                <div className="row">
-                    {
-                        feeed.map(post => {
-                            // { console.log(post.image_url) }
-                            return (
-                                <div key={post.id} className="card" style={{ width: 18 + 'rem' }}>
-                                    <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
-                                    <div className="card-body">
-                                        <h5 className="card-title">{post.title}</h5>
-                                        <p className="card-text">{post.description}</p>
-                                        <a href="#" className="btn btn-primary">Go somewhere</a>
+        return (
+            <div>
+                feed
+                {/* {message} */}
+                {/* <MyFeed /> */}
+                <br />
+                <div className='container'>
+                    <div className="row">
+                        {
+                            feeed.map(post => {
+                                // { console.log(post.image_url) }
+                                return (
+                                    <div key={post.id} className="card" style={{ width: 18 + 'rem' }}>
+                                        <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
+                                        <div className="card-body">
+                                            <h5 className="card-title">{post.title}</h5>
+                                            <p className="card-text">{post.description}</p>
+                                            <a href="#" className="btn btn-primary">Go somewhere</a>
+                                        </div>
                                     </div>
-                                </div>
-                            )
-                        })
-                    }
-                </div>
-                {/* <div className="row">
+                                )
+                            })
+                        }
+                    </div>
+                    {/* <div className="row">
                     <button onClick={() => {
                         const refreshData = () => {
                             router.replace(router.asPath);
@@ -69,9 +72,16 @@ export default function Feed({ feed }) {
 
                     }}>show more 5</button>
                 </div> */}
+                </div>
             </div>
-        </div>
-    )
+        )
+    } else {
+        return (
+            <>
+                <h1>please login to be able post</h1>
+            </>
+        )
+    }
 }
 
 
