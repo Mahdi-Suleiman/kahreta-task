@@ -14,7 +14,8 @@ type Query {
 type Mutation{
     signup(email: String!, password: String!, name: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
-    post(userId: ID!,title: String!, description: String!, image_url: String!): Post!
+    # post(userId: ID!,title: String!, description: String!, image_url: String!): Post!
+    post(title: String!, description: String!, image_url: String!): Post!
     like(postId: ID!): Like
     view(postId: ID!): View
     singleUpload(file: Upload!): File!

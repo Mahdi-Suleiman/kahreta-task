@@ -17,13 +17,13 @@ function Navbar() {
 
     const goToLogin = () => {
         // window.location.replace("/login");
-        router.push('/')
+        // router.push('/')
     }
 
     const Logout = () => {
         Cookies.remove('access_token')
         setLoggedIn('')
-        goToLogin()
+        // goToLogin()
     }
 
     return (

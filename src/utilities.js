@@ -8,7 +8,8 @@ function getTokenPayload(token) {
 function getUserId(req, authToken) {
     if (req) {
         // alert('test')
-        const authHeader = req.headers.authorization;
+        // const authHeader = req.headers.authorization;
+        const authHeader = req.body.headers.authorization;
         if (authHeader) {
             const token = authHeader.replace('Bearer ', '');
             if (!token) {

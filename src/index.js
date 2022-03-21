@@ -1,5 +1,6 @@
 // const { ApolloServer, gql } = require('apollo-server')
 const express = require('express')
+const cors = require('cors')
 // const { ApolloServer, makeExecutableSchema, gql } = require('apollo-server');
 const { ApolloServer, makeExecutableSchema, gql } = require("apollo-server-express");
 const { PrismaClient } = require('@prisma/client')
@@ -16,7 +17,8 @@ const { GraphQLUpload, graphqlUploadExpress } = require('graphql-upload')
 const bodyParser = require('body-parser')
 const multer = require('multer')
 const axios = require('axios')
-var cookieParser = require('cookie-parser')
+var cookieParser = require('cookie-parser');
+const FormData = require('form-data');
 
 
 
@@ -90,10 +92,13 @@ const resolvers = {
     },
     Mutation: {
         post: async (parent, args, context, info) => {
-            // const { userId } = context // return an exception if it's not found
-            // if (!userId) {
-            //     throw new Error('not authorized')
-            // }
+            console.log(context.test)
+            // console.log(args.image_url)
+            const { userId } = context // return an exception if it's not found
+            if (!userId) {
+                console.log('not authorized')
+                throw new Error('not authorized')
+            }
             // console.log(args.description.includes('war'))
             const descriptionCheck = /war|gender|terrorist/.test(args.description)
             // console.log(/war|gender|terrorist/.test(args.description))
@@ -107,7 +112,8 @@ const resolvers = {
                     title: args.title,
                     description: args.description,
                     image_url: args.image_url,
-                    User: { connect: { id: args.userId } },
+                    User: { connect: { id: userId } },
+                    // User: { connect: { id: args.userId } },
 
                 }
             })
@@ -417,8 +423,10 @@ async function startApolloServer() {
             return {
                 ...req,
                 prisma,
+                test: req.body.headers.authorization,
                 userId:
-                    req && req.headers.authorization
+                    // req && req.headers.authorization // play ground request
+                    req && req.body.headers.authorization // browser request
                         ? getUserId(req)
                         : null
             }
@@ -464,11 +472,17 @@ async function startApolloServer() {
         // console.log('Signed Cookies: ', req.signedCookies)
         // console.log(pathName)
         // console.log(image)
+        // console.log(...req.headers)
+        const headers = {
+            ...req.headers
+        }
+        console.log(headers)
+        const data = new FormData()
         axios
             .post(`http://localhost:4000/`, {
                 query: `
-                mutation Post($userId: ID!, $title: String!, $description: String!, $imageUrl: String!) {
-                    post(userId: $userId, title: $title, description: $description, image_url: $imageUrl) {
+                mutation Post($title: String!, $description: String!, $imageUrl: String!) {
+                    post(title: $title, description: $description, image_url: $imageUrl) {
                       id
                       title
                       description
@@ -478,15 +492,19 @@ async function startApolloServer() {
       `,
                 variables: {
                     // id: String(id),
-                    userId: req.body.userId,
-                    title: 'rest title',
-                    description: 'rest descriptioon',
+                    // userId: req.body.userId,
+                    title: req.body.title,
+                    // title: 'rest title',
+                    description: req.body.description,
+                    // description: 'rest descriptioon',
                     imageUrl: pathName,
                     // type: this.form.type,
                 },
+                headers: headers
             })
             .then(res => console.log(res.status))
             .catch(err => console.log(err))
+        // res.json({ user: 'CORS enabled' })
         res.send(apiResponse({ message: 'File uploaded successfully.', image }));
     });
 
@@ -506,6 +524,12 @@ async function startApolloServer() {
     //
     app.use(bodyParser.json())
     app.use(cookieParser())
+    const corsOptions = {
+        // origin: 'http://localhost:4000',
+        credentials: true,            //access-control-allow-credentials:true
+        optionSuccessStatus: 200
+    }
+    app.use(cors(corsOptions));
     // app.use(GraphQLUpload)
     app.use(express.json({ limit: "50mb" }));
     app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }));
@@ -542,6 +566,8 @@ startApolloServer()
 //     url = `${baseUrl}${port}${url.split('Upload')[1]}`;
 //     return url;
 // } // This is single readfile
+
+
 
 
 
