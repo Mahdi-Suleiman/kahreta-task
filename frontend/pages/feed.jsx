@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { ApolloClient, InMemoryCache, createHttpLink, gql } from "@apollo/client";
-import client from '../apollo-client';
+// import client from '../apollo-client';
 import { setContext } from '@apollo/client/link/context';
 import Image from 'next/image'
 import { useRouter } from 'next/router';
