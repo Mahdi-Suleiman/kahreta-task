@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx next dev"
+    "dev": "npx next dev",
+    "build": "cd frontend && next build"
   },
   "repository": {
     "type": "git",
