@@ -92,8 +92,8 @@ const resolvers = {
     },
     Mutation: {
         post: async (parent, args, context, info) => {
-            console.log(context.test)
-            // console.log(args.image_url)
+            // console.log(context.test)
+            console.log('image url', args.image_url)
             const { userId } = context // return an exception if it's not found
             if (!userId) {
                 console.log('not authorized')
@@ -106,7 +106,7 @@ const resolvers = {
                 throw new Error(`Post cannot contain offensive words like: war, gender & terrorist`)
             }
             // const userId = '4203e099-bc5d-4e81-a1f5-41616fd5b508'
-
+            console.log('iddddd', userId)
             const newPost = await context.prisma.post.create({
                 data: {
                     title: args.title,
@@ -414,19 +414,20 @@ const resolvers = {
 // server.listen().then(({ url }) => {
 //     console.log(`🚀 Server ready at ${url} 🚀`);
 // });
-
+let pathName
 async function startApolloServer() {
     const server = new ApolloServer({
         typeDefs,
         resolvers,
         context: ({ req }) => {
+            console.log("request headers", req.headers)
             return {
                 ...req,
                 prisma,
-                test: req.body.headers.authorization,
+                // test: req.body.headers.authorization,
                 userId:
-                    // req && req.headers.authorization // play ground request
-                    req && req.body.headers.authorization // browser request
+                    req && req.headers.authorization // play ground request
+                        // req && req.body.headers.authorization // browser request
                         ? getUserId(req)
                         : null
             }
@@ -460,9 +461,12 @@ async function startApolloServer() {
     let upload = multer({ storage: storage });
 
 
-    app.post('/api/image-upload', upload.single('image'), (req, res) => {
+    app.post('/api/image-upload', upload.single('image'), async (req, res) => {
+        // app.post('/api/image-upload', async (req, res) => {
+        //     upload.single('image')
+        // res.send(req.headers)
         // console.log(req)
-        const image = req.body.image;
+        // const image = req.body.image;
         // console.log("image", req.body.)
         // console.log(storage.destination)
         // const pathName = path.join(__dirname, `./uploads/${filename}`)
@@ -473,16 +477,19 @@ async function startApolloServer() {
         // console.log(pathName)
         // console.log(image)
         // console.log(...req.headers)
-        const headers = {
-            ...req.headers
-        }
-        console.log(headers)
-        const data = new FormData()
+        // const headers = {
+        //     ...req.headers
+        // }
+        // console.log(headers)
+        console.log('mahdirequest', req.body)
+        const authorization = req.headers.authorization
+        console.log('auth', authorization)
+        // const data = new FormData()
         axios
             .post(`http://localhost:4000/`, {
                 query: `
-                mutation Post($title: String!, $description: String!, $imageUrl: String!) {
-                    post(title: $title, description: $description, image_url: $imageUrl) {
+                mutation Post($title: String!, $description: String!, $image_url: String!) {
+                    post(title: $title, description: $description, image_url: $image_url) {
                       id
                       title
                       description
@@ -494,18 +501,30 @@ async function startApolloServer() {
                     // id: String(id),
                     // userId: req.body.userId,
                     title: req.body.title,
+                    // title: 'req.body.title',
+                    // title: data.get(req.body.title),
                     // title: 'rest title',
                     description: req.body.description,
                     // description: 'rest descriptioon',
-                    imageUrl: pathName,
+                    image_url: pathName,
                     // type: this.form.type,
                 },
-                headers: headers
-            })
+                // headers: { ...req.headers, 'Content-Type': 'application/json' }
+                // headers: req.headers
+            },
+                {
+                    // headers: { ...req.headers }
+                    // headers: { ...req.headers, 'Content-Type': 'application/json' }
+                    headers: {
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0MjAzZTA5OS1iYzVkLTRlODEtYTFmNS00MTYxNmZkNWI1MDgiLCJpYXQiOjE2NDg0NjI0NDF9.l50tsmN_NLK-__y72QAbrhVXPwSVTsjt-TnsD_pjapU',
+                    }
+                }
+            )
             .then(res => console.log(res.status))
             .catch(err => console.log(err))
         // res.json({ user: 'CORS enabled' })
-        res.send(apiResponse({ message: 'File uploaded successfully.', image }));
+        // res.send(apiResponse({ message: 'File uploaded successfully.', image }));
+        res.send(apiResponse({ message: 'File uploaded successfully.' }));
     });
 
     app.get('/cookies', (req, res) => {
@@ -522,7 +541,13 @@ async function startApolloServer() {
     }
 
     //
+    app.use(function (req, res, next) {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        next();
+    });
     app.use(bodyParser.json())
+    // app.use(express.urlencoded())
     app.use(cookieParser())
     const corsOptions = {
         // origin: 'http://localhost:4000',
@@ -530,6 +555,7 @@ async function startApolloServer() {
         optionSuccessStatus: 200
     }
     app.use(cors(corsOptions));
+
     // app.use(GraphQLUpload)
     app.use(express.json({ limit: "50mb" }));
     app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }));

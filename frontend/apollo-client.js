@@ -10,7 +10,7 @@ const authLink = setContext((req, { headers }) => {
     // get the authentication token from local storage if it exists
     // const token = JSON.parse(localStorage.getItem('token'))
     // const token = ''
-    const token = Cookies.get('name')
+    const token = Cookies.get('access_token')
     console.log('token', token)
     // return the headers to the context so httpLink can read them
     return {

@@ -117,19 +117,24 @@ export async function getServerSideProps({ req, res }) {
     // console.log(req.cookies.access_token)
     const { data } = await client.query({
         query: gql`
-            query Feed($take: Int, $skip: Int) {
-                    feed(take: $take, skip: $skip) {
+            # query Feed($take: Int, $skip: Int) {
+            #         feed(take: $take, skip: $skip) {
+                query Feed($orderBy: PostOrderByInput) {
+  feed(orderBy: $orderBy) {
                     id
                     description
                     title
                     image_url
                 }
-                }
+            }
   `,
-        // variables: {
-        //     take: pageCounter,
-        //     skip: 0
-        // }
+        variables: {
+            // take: pageCounter,
+            // skip: 0,
+            orderBy: {
+                createdAt: "desc"
+            }
+        }
     })
 
     // console.log(data.feed)
