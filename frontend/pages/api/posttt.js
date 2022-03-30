@@ -22,26 +22,27 @@ export default async function handler(req, res) {
         // var data = req.body;
         // var myBodyValue = data.title;
         // console.log(myBodyValue)
-        console.dir(req.headers)
-        console.dir(req.body)
-        const body = JSON.stringify(req.body)
-
-        await fetch('http://localhost:4000/api/image-upload', {
-            method: 'POST',
-            headers:
-                // 'Accept': 'application/json',
-                // 'Content-Type': 'application/json',
-                // 'Content-Type': 'multipart/form-data',
-                // Content-Type: multipart/form-data; boundary=???,
-                req.headers
-            ,
-            // body: { ...req.body }
-            body: req.body
-        })
-            .then(response => {
-                console.log(response);
-            });
-
+        /*
+                console.dir(req.headers)
+                console.dir(req.body)
+                const body = JSON.stringify(req.body)
+        
+                await fetch('http://localhost:4000/api/image-upload', {
+                    method: 'POST',
+                    headers:
+                        // 'Accept': 'application/json',
+                        // 'Content-Type': 'application/json',
+                        // 'Content-Type': 'multipart/form-data',
+                        // Content-Type: multipart/form-data; boundary=???,
+                        req.headers
+                    ,
+                    // body: { ...req.body }
+                    body: req.body
+                })
+                    .then(response => {
+                        console.log(response);
+                    });
+        */
         // res.status(200).json(data)
         // await axios({
         //     method: 'POST',

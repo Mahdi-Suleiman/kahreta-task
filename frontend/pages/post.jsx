@@ -146,8 +146,8 @@ function Post() {
         console.log(data)
         axios({
             method: 'POST',
-            url: 'http://localhost:4000/api/image-upload',
-            // url: '/api/post',
+            // url: 'http://localhost:4000/api/image-upload',
+            url: '/api/post',
             headers: {
                 'Authorization': `Bearer ${Cookies.get('access_token')}`,
             },
