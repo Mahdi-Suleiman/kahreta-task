@@ -41,6 +41,9 @@ function Navbar() {
                         <Link href="/post">
                             <a className="nav-item nav-link active" href="">post</a>
                         </Link>
+                        <Link href="/register">
+                            <a className="nav-item nav-link active" href="">register</a>
+                        </Link>
                         {/* <a className="nav-item nav-link" href="#">Features</a> */}
                         {
                             loggedIn ? <a href='' className="nav-item nav-link" onClick={Logout}> logout</a> : <Link href="/login" ><a href='' className="nav-item nav-link" >login</a></Link>
