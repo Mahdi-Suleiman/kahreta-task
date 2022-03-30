@@ -35,7 +35,12 @@ function Navbar() {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
                     <div className="navbar-nav">
-                        <a className="nav-item nav-link active" href="#">Home</a>
+                        <Link href="/feed">
+                            <a className="nav-item nav-link active" href="">Feed</a>
+                        </Link>
+                        <Link href="/post">
+                            <a className="nav-item nav-link active" href="">post</a>
+                        </Link>
                         {/* <a className="nav-item nav-link" href="#">Features</a> */}
                         {
                             loggedIn ? <a href='' className="nav-item nav-link" onClick={Logout}> logout</a> : <Link href="/login" ><a href='' className="nav-item nav-link" >login</a></Link>

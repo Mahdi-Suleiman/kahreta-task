@@ -45,7 +45,7 @@ export default function Feed({ feed }) {
                             feeed.map(post => {
                                 // { console.log(post.image_url) }
                                 return (
-                                    <div key={post.id} className="card" style={{ width: 18 + 'rem' }}>
+                                    <div key={post.id} className="card m-3" style={{ width: 18 + 'rem' }}>
                                         <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
                                         <div className="card-body">
                                             <h5 className="card-title">{post.title}</h5>
@@ -120,11 +120,11 @@ export async function getServerSideProps({ req, res }) {
             # query Feed($take: Int, $skip: Int) {
             #         feed(take: $take, skip: $skip) {
                 query Feed($orderBy: PostOrderByInput) {
-  feed(orderBy: $orderBy) {
-                    id
-                    description
-                    title
-                    image_url
+                    feed(orderBy: $orderBy) {
+                        id
+                        description
+                        title
+                        image_url
                 }
             }
   `,

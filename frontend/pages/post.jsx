@@ -57,33 +57,34 @@ function Post() {
         // let formData = new FormData();
         // formData.append('image', file)
         // console.log(formData)
-        console.log(Cookies.get('access_token'))
-        const myFrom = document.getElementById('myForm')
+        // console.log(Cookies.get('access_token'))
+        // const myFrom = document.getElementById('myForm')
         // console.log('e', myFrom)
         // let data = new FormData(e.target);
-        let data = new FormData();
         // let data = new FormData(myFrom);
         // data.set('image', file)
         // data.delete('image')
+        let data = new FormData();
         data.append('title', title);
         data.append('description', description);
         data.append('image', file)
-        var myHeaders = new Headers();
+        // var myHeaders = new Headers();
         // myHeaders.append("Cookie", "access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0MjAzZTA5OS1iYzVkLTRlODEtYTFmNS00MTYxNmZkNWI1MDgiLCJpYXQiOjE2NDc3NzQxMzV9.7IIzLHYSyXkHaH_FxTATpZ6A0VI8zvsitylRyfwU-Fw");
         // myHeaders.append("Cookie", `access_token=${Cookies.get('access_token')}`);
-        myHeaders.append("Authorization", `Bearer ${Cookies.get('access_token')}`);
+        // myHeaders.append("Authorization", `Bearer ${Cookies.get('access_token')}`);
         // console.log('headers', myHeaders)
-        const config = {
-            method: 'post',
-            url: 'http://localhost:4000/api/image-upload',
-            headers: {
-                // 'Cookie': 'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0MjAzZTA5OS1iYzVkLTRlODEtYTFmNS00MTYxNmZkNWI1MDgiLCJpYXQiOjE2NDc3NzQxMzV9.7IIzLHYSyXkHaH_FxTATpZ6A0VI8zvsitylRyfwU-Fw',
-                // ...data.getHeaders()
-                // myHeaders
-                'Authorization': `Bearer ${Cookies.get('access_token')}`,
-            },
-            data: data
-        };
+
+        // const config = {
+        //     method: 'post',
+        //     url: 'http://localhost:4000/api/image-upload',
+        //     headers: {
+        //         // 'Cookie': 'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0MjAzZTA5OS1iYzVkLTRlODEtYTFmNS00MTYxNmZkNWI1MDgiLCJpYXQiOjE2NDc3NzQxMzV9.7IIzLHYSyXkHaH_FxTATpZ6A0VI8zvsitylRyfwU-Fw',
+        //         // ...data.getHeaders()
+        //         // myHeaders
+        //         'Authorization': `Bearer ${Cookies.get('access_token')}`,
+        //     },
+        //     data: data
+        // };
 
         // axios.interceptors.request.use(function (config) {
         //     const token = `Bearer ${Cookies.get('access_token')}`
@@ -91,12 +92,12 @@ function Post() {
 
         //     return config;
         // });
-        var request = new XMLHttpRequest();
+        // var request = new XMLHttpRequest();
         // request.open("POST", "http://localhost:4000/api/image-upload", true);
-        request.open("POST", "/api/post", true);
-        request.setRequestHeader('Authorization', `Bearer ${Cookies.get('access_token')}`);
+        // request.open("POST", "/api/post", true);
+        // request.setRequestHeader('Authorization', `Bearer ${Cookies.get('access_token')}`);
         // request.setRequestHeader('Content-Type', `multipart/form-data boundary=xxx`);
-        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        // request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         // 'Content-Type': 'multipart/form-data',
         //
         // request.send(data);
@@ -145,8 +146,8 @@ function Post() {
         console.log(data)
         axios({
             method: 'POST',
-            // url: 'http://localhost:4000/api/image-upload',
-            url: '/api/post',
+            url: 'http://localhost:4000/api/image-upload',
+            // url: '/api/post',
             headers: {
                 'Authorization': `Bearer ${Cookies.get('access_token')}`,
             },
