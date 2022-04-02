@@ -4,7 +4,7 @@ import { setContext } from '@apollo/client/link/context';
 import client from '../apollo-client';
 
 export default function Users({ users }) {
-    console.log(users)
+    // console.log(users)
 
     const handleFollow = async (e, userId, username) => {
         e.preventDefault()
@@ -29,11 +29,36 @@ export default function Users({ users }) {
 
         })
         console.log(response)
-        if (response.data) {
+        if (response.data.follow.id != null) {
             alert(`you followed ${username}`)
         }
         else {
-            alert('ops, something wrong happened')
+            alert(`you already follow ${username}`)
+        }
+    }
+
+    const handleUnfollow = async (e, userId, username) => {
+        e.preventDefault()
+        console.log(userId)
+        const response = await client.mutate({
+            mutation: gql`
+            mutation Unfollow($followerId: ID!) {
+                unfollow(followerId: $followerId) {
+                    id
+                }
+            }
+            `,
+            variables: {
+                followerId: userId
+            }
+
+        })
+        console.log(response)
+        if (response.data.unfollow.id != null) {
+            alert(`you unfollowed ${username}`)
+        }
+        else {
+            alert(`you don't follow ${username}`)
         }
     }
     return (
@@ -49,7 +74,8 @@ export default function Users({ users }) {
                                     <div className="card-body">
                                         <h5 className="card-title">{user.name}</h5>
                                         <p className="card-text">{user.email}</p>
-                                        <button className="btn btn-primary" onClick={() => handleFollow(event, user.id, user.name)}>follow</button>
+                                        <button className="btn btn-primary m-1" onClick={() => handleFollow(event, user.id, user.name)}>follow</button>
+                                        <button className="btn btn-danger m-1" onClick={() => handleUnfollow(event, user.id, user.name)}>Unfollow</button>
                                     </div>
                                 </div>
                             </form>

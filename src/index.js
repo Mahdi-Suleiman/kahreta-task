@@ -345,6 +345,7 @@ const resolvers = {
                 }
             })
             if (Boolean(followCheck)) {
+                return {}
                 throw new Error(`user with ID ${userId} already followed user with ID ${args.followerId}`)
             }
 
@@ -356,6 +357,39 @@ const resolvers = {
             })
             console.log('follow', newFollow)
             return newFollow
+        },
+        unfollow: async (parent, args, context, info) => {
+            let { userId } = context // return an exception if it's not found
+            if (!userId) {
+                console.log('not authorized')
+                throw new Error('not authorized')
+            }
+            // console.log('user id', userId)
+            // console.log('follower id', args.followerId)
+            const followCheck = await context.prisma.follower.findUnique({
+                where: {
+                    userId_followerId: {
+                        userId: String(args.followerId),
+                        followerId: String(userId),
+                    }
+                }
+            })
+
+            if (!Boolean(followCheck)) {
+                return {}
+                throw new Error(`user with ID ${userId} don't follow user with ID ${args.followerId}`)
+            }
+
+            const deletedFollow = await context.prisma.follower.delete({
+                where: {
+                    userId_followerId: {
+                        userId: String(args.followerId),
+                        followerId: String(userId),
+                    }
+                }
+            })
+            console.log('unfollow', deletedFollow)
+            return deletedFollow
         }
     },
     Post: {

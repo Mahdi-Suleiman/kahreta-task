@@ -20,6 +20,7 @@ type Mutation{
     view(postId: ID!): View
     singleUpload(file: Upload!): File!
     follow(followerId: ID!): Follow
+    unfollow(followerId: ID!): Follow
 }
 
 type Follow{
