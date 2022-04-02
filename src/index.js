@@ -63,32 +63,42 @@ const resolvers = {
             return posts
         },
         users: async (parent, args, context, info) => {
-            const { userId } = context // return an exception if no token found
+            let { userId } = context // return an exception if no token found
 
             if (!userId) {
                 throw new Error('not authorized')
             }
-
-            return await context.prisma.user.findMany({
-                where: {
-                    userId: userId
-                }
-            })
+            // userId = "2e78f7a2-97dc-4805-9aba-6e495cf0dabc"
+            return await context.prisma.user.findMany(
+                // {
+                //     where: {
+                //         // userId: userId,
+                //         // User
+                //         id: userId
+                //     }
+                // }
+            )
         },
-        // followers: async (parent, args, context, info) => {
-        //     const { userId } = context // return an exception if no token found
+        followers: async (parent, args, context, info) => {
+            let { userId } = context // return an exception if no token found
 
-        //     if (!userId) {
-        //         throw new Error('not authorized')
-        //     }
+            if (!userId) {
+                throw new Error('not authorized')
+            }
+            // userId = "2e78f7a2-97dc-4805-9aba-6e495cf0dabc"
+            console.log(userId)
+            const response = await context.prisma.follower.findMany(
+                {
+                    where: {
+                        userId: userId
+                        // followerId: userId
+                    }
+                }
+            )
 
-        //     return await context.prisma.follower.findMany({
-        //         where: {
-        //             userId: userId
-        //         }
-        //     })
-
-        // }
+            console.log(response)
+            return response
+        }
     },
     Mutation: {
         post: async (parent, args, context, info) => {
@@ -196,7 +206,7 @@ const resolvers = {
             if (!userId) {
                 throw new Error('not authorized')
             }
-            const viewCheck = await context.prisma.like.findUnique({
+            const viewCheck = await context.prisma.view.findUnique({
                 where: {
                     userId_postId: {
                         userId: String(userId),
@@ -206,7 +216,11 @@ const resolvers = {
             })
 
             if (Boolean(viewCheck)) {
-                throw new Error(`User already viewd this post ${args.postId}`)
+                return {
+                    ...viewCheck,
+                    viewed: true
+                }
+                throw new Error(`User already viewd post with ID: ${args.postId}`)
             }
 
             const newView = await context.prisma.view.create({
@@ -216,7 +230,10 @@ const resolvers = {
                 }
             })
 
-            return newView
+            return {
+                ...newView,
+                viewed: false
+            }
         },
         singleUpload: async (parent, args, context, info) => {
             // const { file } = args
@@ -315,28 +332,29 @@ const resolvers = {
         follow: async (parent, args, context, info) => {
             const { userId } = context // return an exception if it's not found
             if (!userId) {
+                console.log('not authorized')
                 throw new Error('not authorized')
             }
-
+            console.log('follow mutations')
             const followCheck = await context.prisma.follower.findUnique({
                 where: {
                     userId_followerId: {
-                        userId: String(userId),
-                        followerId: String(args.followerId),
+                        userId: String(args.followerId),
+                        followerId: String(userId),
                     }
                 }
             })
             if (Boolean(followCheck)) {
-                throw new Error(`user with ID ${userId} already followerd user with ID ${args.followerId}`)
+                throw new Error(`user with ID ${userId} already followed user with ID ${args.followerId}`)
             }
 
             const newFollow = await context.prisma.follower.create({
                 data: {
-                    User: { connect: { id: userId } },
-                    Follower: { connect: { id: args.followerId } }
+                    User: { connect: { id: String(args.followerId) } },
+                    Follower: { connect: { id: String(userId) } }
                 }
             })
-
+            console.log('follow', newFollow)
             return newFollow
         }
     },
@@ -359,7 +377,14 @@ const resolvers = {
             return await context.prisma.user.findUnique({ where: { id: parent.id } }).posts()
         },
         views: async (parent, args, context, info) => {
-            return await context.prisma.post.findUnique({ where: { id: parent.id } }).views()
+            return await context.prisma.user.findUnique({ where: { id: parent.id } }).views()
+        },
+        followers: async (parent, args, context, info) => {
+            // return await context.prisma.user.findUnique({ where: { id: parent.id } }).Followers() //follwoing
+            return await context.prisma.user.findUnique({ where: { id: parent.id } }).User() //followers
+        },
+        following: async (parent, args, context, info) => {
+            return await context.prisma.user.findUnique({ where: { id: parent.id } }).Followers() //follwoing
         }
     },
     Like: {
@@ -378,18 +403,18 @@ const resolvers = {
             return await context.prisma.view.findUnique({ where: { id: parent.id } }).User()
         }
     },
-    // Follow: {
-    //     id: async (parent, args, context, info) => {
-    //         return parent.id
-    //         return await context.prisma.follower.findUnique({ where: { id: parent.id } }).id()
-    //     },
-    //     userId: async (parent, args, context, info) => {
-    //         return await context.prisma.follower.findUnique({ where: { id: parent.id } }).User()
-    //     },
-    //     followerId: async (parent, args, context, info) => {
-    //         return await context.prisma.follower.findUnique({ where: { id: parent.id } }).Follower()
-    //     }
-    // }
+    Follow: {
+        // id: async (parent, args, context, info) => {
+        //     // return parent.id
+        //     return await context.prisma.follower.findUnique({ where: { id: parent.id } }).id()
+        // },
+        userId: async (parent, args, context, info) => {
+            return await context.prisma.follower.findUnique({ where: { id: parent.id } }).User()
+        },
+        followerId: async (parent, args, context, info) => {
+            return await context.prisma.follower.findUnique({ where: { id: parent.id } }).Follower()
+        }
+    }
 }
 
 
@@ -420,7 +445,7 @@ async function startApolloServer() {
         typeDefs,
         resolvers,
         context: ({ req }) => {
-            console.log("request headers", req.headers)
+            // console.log("request headers", req.headers)
             return {
                 ...req,
                 prisma,

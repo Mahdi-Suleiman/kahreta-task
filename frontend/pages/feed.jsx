@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { ApolloClient, InMemoryCache, createHttpLink, gql } from "@apollo/client";
-// import client from '../apollo-client';
+import client from '../apollo-client';
 import { setContext } from '@apollo/client/link/context';
 import Image from 'next/image'
 import { useRouter } from 'next/router';
@@ -14,7 +14,7 @@ export default function Feed({ feed }) {
     const router = useRouter();
     const [feeed, setFeeed] = useState(feed)
     const [cookie, setCookie] = useState(Cookies.get('access_token'))
-
+    console.log(feeed)
 
     // console.log('posts from feed', posts);
     // console.log(posts.length);
@@ -30,6 +30,29 @@ export default function Feed({ feed }) {
     //     // router.replace(router.asPath)
     // }, [counter])
 
+    const viewPost = async (e, postId) => {
+        e.preventDefault();
+        const response = await client.mutate({
+            mutation: gql`
+            mutation View($postId: ID!) {
+                view(postId: $postId) {
+                    id
+                    viewed
+                }
+            }
+            `,
+            variables: {
+                postId: postId
+            }
+        })
+        console.log(response)
+        if (response.data.view.viewed) {
+            alert('you already viewed this post')
+        } else {
+            alert('this is your first time seeing this post')
+        }
+
+    }
 
     if (cookie) {
 
@@ -45,14 +68,16 @@ export default function Feed({ feed }) {
                             feeed.map(post => {
                                 // { console.log(post.image_url) }
                                 return (
-                                    <div key={post.id} className="card m-3" style={{ width: 18 + 'rem' }}>
-                                        <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
-                                        <div className="card-body">
-                                            <h5 className="card-title">{post.title}</h5>
-                                            <p className="card-text">{post.description}</p>
-                                            <a href="#" className="btn btn-primary">Go somewhere</a>
+                                    <form action="" style={{ display: 'inline-block', width: 30 + '%' }}>
+                                        <div key={post.id} className="card m-3" style={{ width: 18 + 'rem' }}>
+                                            <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
+                                            <div className="card-body">
+                                                <h5 className="card-title">{post.title}</h5>
+                                                <p className="card-text">{post.description}</p>
+                                                <button className="btn btn-primary" onClick={() => { viewPost(event, post.id) }}>view post</button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </form>
                                 )
                             })
                         }
@@ -95,7 +120,8 @@ export async function getServerSideProps({ req, res }) {
     // })
 
     const httpLink = createHttpLink({
-        uri: 'http://localhost:4000/',
+        // uri: 'http://localhost:4000/',
+        uri: 'http://9f51-188-247-65-132.ngrok.io',
     });
     const authLink = setContext((_, { headers }) => {
         const token = req.cookies.access_token
@@ -125,6 +151,9 @@ export async function getServerSideProps({ req, res }) {
                         description
                         title
                         image_url
+                        userId{
+                            id
+                        }
                 }
             }
   `,

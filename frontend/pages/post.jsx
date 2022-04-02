@@ -144,7 +144,7 @@ function Post() {
         //         //     });
 
         console.log(data)
-        axios({
+        const response = await axios({
             method: 'POST',
             // url: 'http://localhost:4000/api/image-upload',
             url: '/api/post',
@@ -155,7 +155,10 @@ function Post() {
         })
         // console.log('data', data.get('description'))
         // console.log('data', ...data)
-
+        // console.log(response.status == 200)
+        if (response.status == 200) {
+            alert('post was successful')
+        }
 
     }
     if (cookie) {

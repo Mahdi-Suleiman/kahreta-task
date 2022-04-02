@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import Cookies from 'js-cookie'
-// import { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 
 function Navbar() {
     // const loggedIn = Cookies.get('access_token')
     const [loggedIn, setLoggedIn] = useState(Cookies.get('access_token'))
-    // const router = useRouter()
+    const router = useRouter()
 
     useEffect(() => {
         setLoggedIn(Cookies.get('access_token'))
@@ -16,14 +16,15 @@ function Navbar() {
     // const [loggedIn, setLoggedIn] = useState(Cookies.get('access_token'))
 
     const goToLogin = () => {
-        // window.location.replace("/login");
-        // router.push('/')
+        window.location.replace("/login");
+        router.push('/login')
+        router.replace('/login')
     }
 
     const Logout = () => {
         Cookies.remove('access_token')
         setLoggedIn('')
-        // goToLogin()
+        goToLogin()
     }
 
     return (
@@ -40,6 +41,12 @@ function Navbar() {
                         </Link>
                         <Link href="/post">
                             <a className="nav-item nav-link active" href="">post</a>
+                        </Link>
+                        <Link href="/users">
+                            <a className="nav-item nav-link active" href="">users</a>
+                        </Link>
+                        <Link href="/profile">
+                            <a className="nav-item nav-link active" href="">profile</a>
                         </Link>
                         <Link href="/register">
                             <a className="nav-item nav-link active" href="">register</a>

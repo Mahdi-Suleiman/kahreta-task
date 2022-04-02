@@ -11,15 +11,15 @@ datasource db {
 }
 
 model User {
-  id       String     @id @default(uuid())
-  email    String     @unique
-  name     String
-  password String
-  posts    Post[]
-  likes    Like[]
-  views    View[]
-  User     Follower[] @relation("user")
-  Follower Follower[] @relation("follower")
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String
+  password  String
+  posts     Post[]
+  likes     Like[]
+  views     View[]
+  User      Follower[] @relation("user")
+  Followers Follower[] @relation("follower")
 
   // followedBy Follower[] @relation("follower")
   // following  Follower[] @relation("following")
