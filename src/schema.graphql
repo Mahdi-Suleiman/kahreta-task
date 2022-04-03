@@ -9,6 +9,8 @@ type Query {
     users: [User!]!
     feed(filter: String, skip: Int, take: Int, orderBy: PostOrderByInput): [Post!]!
     followers: [Follow]
+    following: [Follow]
+    views(postId: ID!): [View]
 }
 
 type Mutation{

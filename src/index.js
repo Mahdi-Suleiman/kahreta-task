@@ -98,7 +98,43 @@ const resolvers = {
 
             console.log(response)
             return response
-        }
+        },
+        following: async (parent, args, context, info) => {
+            let { userId } = context // return an exception if no token found
+
+            if (!userId) {
+                throw new Error('not authorized')
+            }
+            const response = await context.prisma.follower.findMany(
+                {
+                    where: {
+                        // userId: userId
+                        followerId: userId
+                    }
+                }
+            )
+
+            console.log(response)
+            return response
+        },
+        views: async (parent, args, context, info) => {
+            let { userId } = context // return an exception if no token found
+
+            if (!userId) {
+                throw new Error('not authorized')
+            }
+
+            const response = await context.prisma.view.findMany(
+                {
+                    where: {
+                        postId: args.postId
+                    }
+                }
+            )
+            // console.log(response)
+            return response
+
+        },
     },
     Mutation: {
         post: async (parent, args, context, info) => {
