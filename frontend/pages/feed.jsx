@@ -13,6 +13,7 @@ import Link from 'next/link'
 // let pageCounter = 5
 export default function Feed(
     // { feed }
+    { key }
 ) {
     const router = useRouter();
     // const [feeed, setFeeed] = useState(feed)
@@ -22,11 +23,11 @@ export default function Feed(
 
 
     const [myFeed, setMyFeed] = useState([])
-    const [counter, setCounter] = useState(5)
+    const [counter, setCounter] = useState(0)
 
     const [customFeed, setCustomFeed] = useState([])
     const [followingList, setFollowingList] = useState([])
-
+    const [followingIDs, setFollowingIDs] = useState([])
     // useEffect(() => {
     //     // const myDiv = document.querySelector('#scrollDiv')
     //     const myDiv = document.querySelector('main')
@@ -37,14 +38,34 @@ export default function Feed(
     //         }
     //     })
     // })
-    useLayoutEffect(() => {
-        getFollowingList().then(data => setFollowingList(data))
-    }, [])
-    useLayoutEffect(() => {
+    // useEffect(() => {
+    //     getFollowingList().then(data => setFollowingList(data)).then(action => {
+
+    //         let onlyIDs = []
+    //         followingList.forEach(following => {
+    //             onlyIDs.push(following.userId.id)
+    //             // setFollowingIDs([...followingIDs, following.userId.id])
+    //             console.log('only ids', onlyIDs)
+    //         })
+    //         setFollowingIDs(onlyIDs)
+    //     })
+
+    // }, [])
+    useEffect(() => {
         getData().then(data => setMyFeed(data))
+        getFollowingList().then(data => setFollowingList(data))
+
+        let onlyIDs = []
+        followingList.forEach(following => {
+            onlyIDs.push(following.userId.id)
+            // setFollowingIDs([...followingIDs, following.userId.id])
+            console.log('only ids', onlyIDs)
+        })
+        setFollowingIDs(onlyIDs)
         // getFollowingList().then(data => setFollowingList(data))
         // getData()
         // setMyFeed()
+        // getFollowingIDs()
 
         // console.log('my feed', myFeed)
         const posts = []
@@ -162,6 +183,15 @@ export default function Feed(
         // setMyFeed(response)
     }
 
+    function getFollowingIDs() {
+        let onlyIDs = []
+        followingList.forEach(following => {
+            onlyIDs.push(following.userId.id)
+            // setFollowingIDs([...followingIDs, following.userId.id])
+            console.log('only ids', onlyIDs)
+        })
+        setFollowingIDs(onlyIDs)
+    }
 
     // const listInnerRef = useRef();
     // const handleScroll = () => {
@@ -207,28 +237,30 @@ export default function Feed(
 
                         >
                             {
-                                customFeed.map(post => {
+                                myFeed.map(post => {
                                     // { console.log(post.image_url) }
-
-                                    return (
-                                        <form
-                                            action=""
-                                            style={{ display: 'inline-block', width: 30 + '%' }}
-                                        >
-                                            <div key={post.id} className="card m-3 p-1" style={{ width: 18 + 'rem' }}>
-                                                <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
-                                                <div className="card-body">
-                                                    <h5 className="card-title">{post.title}</h5>
-                                                    <p className="card-text">{post.description}</p>
-                                                    <button className="btn btn-primary m-1" onClick={(e) => { viewPost(e, post.id) }}>view post</button>
-                                                    <br />
-                                                    <Link href={`post/${post.id}`}>
-                                                        <a className="btn btn-secondary m-1">see who viewed this post</a>
-                                                    </Link>
+                                    // console.log(post)
+                                    if (followingIDs.includes(post.userId.id)) {
+                                        return (
+                                            <form
+                                                action=""
+                                                style={{ display: 'inline-block', width: 30 + '%' }}
+                                            >
+                                                <div key={post.id} className="card m-3 p-1" style={{ width: 18 + 'rem' }}>
+                                                    <img src={post.image_url} className="card-img-top" alt={post.description} layout='fill' />
+                                                    <div className="card-body">
+                                                        <h5 className="card-title">{post.title}</h5>
+                                                        <p className="card-text">{post.description}</p>
+                                                        <button className="btn btn-primary m-1" onClick={(e) => { viewPost(e, post.id) }}>view post</button>
+                                                        <br />
+                                                        <Link href={`post/${post.id}`}>
+                                                            <a className="btn btn-secondary m-1">see who viewed this post</a>
+                                                        </Link>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </form>
-                                    )
+                                            </form>
+                                        )
+                                    }
                                 })
                             }
                         </div>
@@ -260,8 +292,6 @@ export default function Feed(
         )
     }
 }
-
-
 
 
 
